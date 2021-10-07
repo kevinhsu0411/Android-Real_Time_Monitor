@@ -8,11 +8,7 @@ import android.util.Base64
 import android.util.Log
 import com.lidroid.xutils.util.MimeTypeUtils
 import elonen.NanoHTTPD
-import elonen.NanoHTTPD.newChunkedResponse
-import elonen.router.RouterNanoHTTPD
 import java.io.*
-import java.lang.Exception
-import java.nio.channels.AsynchronousFileChannel.open
 
 
 class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
@@ -70,7 +66,6 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
             try {
                 inputStream = activity.getAssets().open(PATH + filename)
             } catch (e: IOException) {
-                // TODO Auto-generated catch block
                 e.printStackTrace()
             }
 

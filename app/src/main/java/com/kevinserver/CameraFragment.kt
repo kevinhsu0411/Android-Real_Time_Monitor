@@ -1,18 +1,13 @@
 package com.kevinserver
 
 import android.graphics.ImageFormat
-import android.graphics.PixelFormat
 import android.hardware.Camera
-import android.hardware.Camera.AutoFocusCallback
 import android.hardware.Camera.PictureCallback
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Button
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kevinserver.databinding.FragmentCameraBinding
@@ -33,8 +28,6 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
     private lateinit var mSurfaceHolder: SurfaceHolder
     private lateinit var mSurfaceView: SurfaceView
     private lateinit var camera: Camera
-    private var is_Keep_Capture = false
-
 
     private var _binding: FragmentCameraBinding? = null
     // This property is only valid between onCreateView and
@@ -60,7 +53,6 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonSecond.setOnClickListener {
-            is_Keep_Capture = false
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
 
@@ -116,7 +108,7 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         Log.d("kk", "CAMERA OPEN +++  surfaceChanged")
         val parameters = camera.getParameters()
 
-        var sizes = parameters.supportedPictureSizes
+        val sizes = parameters.supportedPictureSizes
 
         // Iterate through all available resolutions and choose one.
         // The chosen resolution will be stored in mSize.
