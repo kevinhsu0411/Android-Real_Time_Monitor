@@ -1,0 +1,60 @@
+﻿<html>
+<head>
+	<title>kevin Server Control Panel</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+	<style type="text/css">
+	.btn{
+		margin: 5px;
+	}
+	</style>
+</head>
+
+<body>
+<!-- Wrap all page content here -->
+<div id="wrap">
+	<div class="navbar navbar-default">
+		<div class="container">
+			<div class="col-md-4 col-sm-12 col-xs-12">
+
+				<div class="page-header">
+					<h2>Camera</h2>
+				</div>
+
+				<img id="imgCamera" class="img-responsive" src="" style="width:100%"/>
+				<br>
+				<button onclick="StartPreview()" class="btn btn-lg btn-primary">Preview</button>
+				<hr>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script src="bootstrap/js/jquery.js"></script>
+<script src="bootstrap/js/bootstrap.js"></script>
+<script type="text/javascript">
+
+		function StartPreview(){
+			var refreshInterval = 100;
+	        var timer = setInterval(function () {
+	            $.ajax({
+					type: "GET",
+					url: "/api/preview",
+					contentType: "application/json; charset=utf-8",
+					dataType: "json",
+					success: function (data) { $('#imgCamera').attr('src',data); },
+					failure: function (errMsg) {
+						clearInterval(timer);
+					},
+					error: function(x,e){
+						 clearInterval(timer);
+					}
+				});
+	        }, refreshInterval);
+		}
+
+	</script>
+</body>
+</html>
+
