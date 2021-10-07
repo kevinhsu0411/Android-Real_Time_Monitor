@@ -1,6 +1,9 @@
 package com.kevinserver
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
+import android.os.PowerManager
 import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +25,9 @@ class MainActivity : AppCompatActivity() {
         lateinit var ROOT_DIR_PATH: String
     }
 
+    private lateinit var pm: PowerManager
+    private lateinit var wakeLock: PowerManager.WakeLock
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -40,6 +46,8 @@ class MainActivity : AppCompatActivity() {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show()
         }
+
+        initPowerWakeLock()
 
         Thread {
             init_web_service()
@@ -63,6 +71,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        Log.d("kk", "onPause --")
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        Log.d("kk", "onDestroy --")
+        super.onDestroy()
+        wakeLock.release()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
@@ -72,6 +91,13 @@ class MainActivity : AppCompatActivity() {
     fun init_web_service() {
         Log.d("KK", "init_web_service")
         WebServer(this, 8080).start()
+    }
+
+    @SuppressLint("InvalidWakeLockTag")
+    fun initPowerWakeLock() {
+        pm = this.getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.kevinserver")
+        wakeLock.acquire()
     }
 
 

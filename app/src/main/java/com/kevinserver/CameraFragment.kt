@@ -23,11 +23,11 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
 
     companion object {
         lateinit var imgRow: ByteArray
+        var camera: Camera? = null
     }
 
     private lateinit var mSurfaceHolder: SurfaceHolder
     private lateinit var mSurfaceView: SurfaceView
-    private lateinit var camera: Camera
 
     private var _binding: FragmentCameraBinding? = null
     // This property is only valid between onCreateView and
@@ -81,10 +81,15 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
 
     fun takePic() {
         Log.d("KK", " +++  Capture ")
-        camera.takePicture(null, null, picture)
+        camera?.takePicture(null, null, picture)
     }
-    override fun onDestroyView() {
-        super.onDestroyView()
+
+    override fun onResume() {
+        Log.d("kk", "CAMERA onResume ++")
+        super.onResume()
+        mSurfaceHolder.addCallback(this)
+        camera?.setPreviewCallback(this)
+        camera?.startPreview()
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
@@ -96,9 +101,9 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
 //        }
 
         try {
-            camera.setPreviewDisplay(holder)
+            camera?.setPreviewDisplay(holder)
         } catch (exception: IOException) {
-            camera.release()
+            camera?.release()
         }
     }
 
@@ -106,29 +111,32 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) { // 取得相機參數
         Log.d("kk", "CAMERA OPEN +++  surfaceChanged")
-        val parameters = camera.getParameters()
+        val parameters = camera?.getParameters()
 
-        val sizes = parameters.supportedPictureSizes
+        val sizes = parameters?.supportedPictureSizes
 
         // Iterate through all available resolutions and choose one.
         // The chosen resolution will be stored in mSize.
-        for (size in sizes) {
-            Log.i("KK", "Available resolution: ${size.width} , ${size.height}")
+        if (sizes != null) {
+            for (size in sizes) {
+                Log.i("KK", "Available resolution: ${size.width} , ${size.height}")
+            }
         }
 
-        parameters.pictureFormat = ImageFormat.JPEG
-        parameters.previewFormat = ImageFormat.NV21
-        parameters.setPreviewSize(640, 480)
+        parameters?.pictureFormat = ImageFormat.JPEG
+        parameters?.previewFormat = ImageFormat.NV21
+        parameters?.setPreviewSize(640, 480)
 
-        camera.setParameters(parameters)
-        camera.startPreview()
-        camera.setPreviewCallback(this)
+        camera?.setParameters(parameters)
+        camera?.setPreviewCallback(this)
+        camera?.startPreview()
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
         Log.d("kk", "CAMERA CLOSE +++  surfaceDestroyed ---")
-        camera.stopPreview()
-        camera.release()
+        mSurfaceHolder.removeCallback(this)
+        camera?.stopPreview()
+        //camera?.release()
     }
 
     var picture = PictureCallback { data, camera ->

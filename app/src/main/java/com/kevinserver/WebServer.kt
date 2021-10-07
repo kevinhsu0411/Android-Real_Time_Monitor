@@ -4,6 +4,7 @@ import android.app.Activity
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.hardware.Camera
 import android.util.Base64
 import android.util.Log
 import com.lidroid.xutils.util.MimeTypeUtils
@@ -34,6 +35,11 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 }
 
                 if (uri.endsWith("preview")) {
+                    if (CameraFragment.imgRow == null) {
+                        CameraFragment.camera = Camera.open()
+                        CameraFragment.camera?.startPreview()
+                    }
+
                     val imgC = YuvImage(CameraFragment.imgRow, ImageFormat.NV21, 640, 480, null)
                     val outStream = ByteArrayOutputStream()
                     imgC.compressToJpeg(Rect(0, 0, 640, 480), 80, outStream)
