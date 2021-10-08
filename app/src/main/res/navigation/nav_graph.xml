@@ -18,7 +18,7 @@
     <fragment
         android:id="@+id/SecondFragment"
         android:name="com.kevinserver.CameraFragment"
-        android:label="@string/second_fragment_label"
+        android:label="Camera Fragment"
         tools:layout="@layout/fragment_camera">
 
         <action

@@ -1,8 +1,11 @@
 package com.kevinserver
 
+import android.app.Activity
+import android.content.Context
 import android.graphics.ImageFormat
 import android.hardware.Camera
 import android.hardware.Camera.PictureCallback
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -56,7 +59,7 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
             findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
 
-
+        activity?.let { showWifiIp(it) }
         initView(view)
     }
 
@@ -180,5 +183,18 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         imgRow = data
     }
 
+
+    fun showWifiIp(activity: Activity) {
+        val wifiManager = activity.getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val wifiInfo = wifiManager.connectionInfo
+        val ip = wifiInfo.ipAddress
+        val ip_String =
+            (ip and 0xff).toString() + "." + (ip shr 8 and 0xff) + "." + (ip shr 16 and 0xff) + "." + (ip shr 24 and 0xff)
+        if (ip == 0) {
+            binding.wifiIp.setText(R.string.not_wifi_ip)
+        } else {
+            binding.wifiIp.setText("http://" + ip_String + ":8080")
+        }
+    }
 
 }

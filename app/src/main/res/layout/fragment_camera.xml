@@ -47,4 +47,18 @@
         app:layout_constraintStart_toEndOf="@+id/button_take_pic"
         app:layout_constraintTop_toBottomOf="@+id/svPreview"
         tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/wifi_ip"
+        android:layout_width="match_parent"
+        android:layout_height="20dp"
+        android:layout_marginTop="124dp"
+        android:background="@color/white"
+        android:text="http:// "
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/svPreview" />
 </androidx.constraintlayout.widget.ConstraintLayout>
