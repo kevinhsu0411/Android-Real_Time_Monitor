@@ -1,27 +1,37 @@
 package com.kevinserver
 
+import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.ActivityManager
 import android.content.Context
 import android.graphics.ImageFormat
+import android.graphics.PixelFormat
 import android.hardware.Camera
 import android.hardware.Camera.PictureCallback
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kevinserver.databinding.FragmentCameraBinding
 import java.io.*
-import java.lang.Exception
+import android.view.LayoutInflater
+
+import android.content.pm.PackageManager
+
+import android.content.Intent
+import io.reactivex.Completable
 import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
+
 
 /**
  * A simple [Fragment] subclass as the second destination in the navigation.
  */
-class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallback {
+class CameraFragment : Fragment() {
 
 
     companion object {
@@ -29,8 +39,17 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         var camera: Camera? = null
     }
 
+
+    private lateinit var mWindowManager: WindowManager
+    private var isFloatView = false
+
+
     private lateinit var mSurfaceHolder: SurfaceHolder
-    private lateinit var mSurfaceView: SurfaceView
+    private lateinit var mFloatView: SurfaceView
+    private lateinit var mSurfaceHandlerCallback: SurfaceHolder.Callback
+    private var mPreviewCallback = Camera.PreviewCallback{ data, camera ->
+        imgRow = data
+    }
 
     private var _binding: FragmentCameraBinding? = null
     // This property is only valid between onCreateView and
@@ -55,14 +74,55 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
 
         activity?.let { showWifiIp(it) }
         initView(view)
+        timerHomeCheck()
     }
 
     private fun initView(view: View) {
-        mSurfaceView = view.findViewById<View>(R.id.svPreview) as SurfaceView
-        mSurfaceHolder = mSurfaceView.getHolder()
-        mSurfaceHolder.addCallback(this)
-        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
-        mSurfaceView.setOnClickListener(View.OnClickListener {
+        mSurfaceHolder = binding.svPreview.getHolder()
+
+        mSurfaceHandlerCallback = object: SurfaceHolder.Callback {
+            override fun surfaceCreated(holder: SurfaceHolder) {
+                camera = Camera.open()
+                Log.d("kk", "CAMERA OPEN +++  surfaceCreated")
+
+        //        if (Build.VERSION.SDK_INT >= 8) { //轉90度
+        //            camera.setDisplayOrientation(90)
+        //        }
+
+                try {
+                    camera?.setPreviewDisplay(holder)
+                } catch (exception: IOException) {
+                    camera?.release()
+                }
+            }
+
+            override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
+                val parameters = camera?.getParameters()
+
+                val sizes = parameters?.supportedPictureSizes
+                if (sizes != null) {
+                    for (size in sizes) {
+                        Log.i("KK", "Available resolution: ${size.width} , ${size.height}")
+                    }
+                }
+
+                parameters?.pictureFormat = ImageFormat.JPEG
+                parameters?.previewFormat = ImageFormat.NV21
+                parameters?.setPreviewSize(640, 480)
+
+                camera?.setParameters(parameters)
+                camera?.setPreviewCallback(mPreviewCallback)
+                camera?.startPreview()
+            }
+
+            override fun surfaceDestroyed(p0: SurfaceHolder) {
+                Log.d("kk", "CAMERA CLOSE ---  surfaceDestroyed ---")
+            }
+        }
+
+        mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
+
+        binding.svPreview.setOnClickListener(View.OnClickListener {
             binding.coverImage.visibility = View.VISIBLE
         })
         binding.buttonTakePic.setOnClickListener {
@@ -80,53 +140,11 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
     }
 
     override fun onResume() {
-        Log.d("kk", "CAMERA onResume ++")
+        Log.d("kk", "CAMERA onResume +++")
         super.onResume()
-        mSurfaceHolder.addCallback(this)
-        camera?.setPreviewCallback(this)
+        mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
+        camera?.setPreviewCallback(mPreviewCallback)
         camera?.startPreview()
-    }
-
-    override fun surfaceCreated(holder: SurfaceHolder) {
-        camera = Camera.open()
-        Log.d("kk", "CAMERA OPEN +++  surfaceCreated")
-
-//        if (Build.VERSION.SDK_INT >= 8) { //轉90度
-//            camera.setDisplayOrientation(90)
-//        }
-
-        try {
-            camera?.setPreviewDisplay(holder)
-        } catch (exception: IOException) {
-            camera?.release()
-        }
-    }
-
-
-
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) { // 取得相機參數
-        val parameters = camera?.getParameters()
-
-        val sizes = parameters?.supportedPictureSizes
-        if (sizes != null) {
-            for (size in sizes) {
-                Log.i("KK", "Available resolution: ${size.width} , ${size.height}")
-            }
-        }
-
-        parameters?.pictureFormat = ImageFormat.JPEG
-        parameters?.previewFormat = ImageFormat.NV21
-        parameters?.setPreviewSize(640, 480)
-
-        camera?.setParameters(parameters)
-        camera?.setPreviewCallback(this)
-        camera?.startPreview()
-    }
-
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
-        Log.d("kk", "CAMERA CLOSE +++  surfaceDestroyed ---")
-        mSurfaceHolder.removeCallback(this)
-        camera?.stopPreview()
     }
 
     var picture = PictureCallback { data, camera ->
@@ -151,11 +169,6 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         return mediaFile
     }
 
-    override fun onPreviewFrame(data: ByteArray, camera: Camera?) {
-        imgRow = data
-    }
-
-
     fun showWifiIp(activity: Activity) {
         val wifiManager = activity.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val wifiInfo = wifiManager.connectionInfo
@@ -167,6 +180,72 @@ class CameraFragment : Fragment(), SurfaceHolder.Callback, Camera.PreviewCallbac
         } else {
             binding.wifiIp.setText("http://" + ip_String + ":8080")
         }
+    }
+
+    fun timerHomeCheck() {
+        val timerTask = Timer().schedule(object : TimerTask() {
+            override fun run() {
+                activity?.let { mWindowManager = it.getSystemService(Context.WINDOW_SERVICE) as WindowManager }
+                if (isHome()) {
+                    if (!isFloatView) {
+                        mFloatView = SurfaceView(context)
+                        val windowLayout = WindowManager.LayoutParams(
+                            200, 200,
+                            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                            PixelFormat.TRANSLUCENT
+                        )
+                        windowLayout.gravity = Gravity.LEFT or Gravity.TOP
+                        activity?.runOnUiThread {
+                            mWindowManager.addView(mFloatView, windowLayout)
+                        }
+
+                        mSurfaceHolder = mFloatView.getHolder()
+                        mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
+                        camera?.setPreviewCallback(mPreviewCallback)
+                        camera?.startPreview()
+                        isFloatView = true
+                    }
+                } else {
+                    if (isFloatView) {
+                        isFloatView = false
+                        Completable.timer(300, TimeUnit.MILLISECONDS).subscribe {
+                            Log.d("kk", "從懸浮視窗回歸")
+                            mWindowManager.removeView(mFloatView)
+                            mSurfaceHolder = binding.svPreview.getHolder()
+                            mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
+                            camera?.setPreviewCallback(mPreviewCallback)
+                            camera?.startPreview()
+                        }
+                    }
+                }
+            }
+        }, 100,500)
+    }
+
+    fun isHome(): Boolean {
+        val mActivityManager = activity?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val rti = mActivityManager.getRunningTasks(1);
+        val strs = getHomes()
+        if (strs != null && strs.size > 0) {
+            return strs.contains(rti.get(0).topActivity?.getPackageName())
+        } else {
+            return false;
+        }
+    }
+
+    private fun getHomes(): List<String>? {
+        val names: MutableList<String> = ArrayList()
+        val packageManager = activity?.getPackageManager()
+        val intent = Intent(Intent.ACTION_MAIN)
+        intent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager?.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        if (resolveInfo != null) {
+            for (info in resolveInfo) {
+                names.add(info.activityInfo.packageName)
+            }
+        }
+        return names
     }
 
 }

@@ -2,8 +2,11 @@ package com.kevinserver
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
@@ -53,6 +56,13 @@ class MainActivity : AppCompatActivity() {
             init_web_service()
         }.start()
 
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(getApplicationContext())) {
+                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getApplicationContext().startActivity(intent);
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
