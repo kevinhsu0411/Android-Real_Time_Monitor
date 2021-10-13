@@ -5,18 +5,19 @@ import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.hardware.Camera
+import android.media.MediaRecorder
 import android.util.Base64
 import android.util.Log
 import com.lidroid.xutils.util.MimeTypeUtils
 import elonen.NanoHTTPD
 import java.io.*
-import java.lang.Exception
 
 
 class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
     val MIME_HTML = "text/html"
     val MIME_JSON = "application/json"
+    val MIME_MPEG = "audio/mpeg"
 
     override fun serve(session: IHTTPSession): Response {
         Log.d("KK", "serve uri: ${session.uri}")
@@ -57,6 +58,33 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                         return newFixedLengthResponse(Response.Status.OK, MIME_JSON, " \"$img_base64\" "
                         )
                     }
+                }
+
+                if (uri.endsWith("audio")) {
+                    val audioFileName = MainActivity.ROOT_DIR_PATH + "/audiorecordtest.mp3"
+//                    var audioFis: File ?= null
+
+//                    val recorder = MediaRecorder().apply {
+//                        setAudioSource(MediaRecorder.AudioSource.MIC)
+//                        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+//                        setOutputFile(audioFileName)
+//                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+//
+//                        try {
+//                            prepare()
+//                        } catch (e: IOException) {
+//                            Log.e("kk", "prepare() failed")
+//                        }
+//
+//                        start()
+//                    }
+
+                    val target = File(audioFileName)
+                    val fileLength = target.length()
+                    val fis = FileInputStream(target)
+
+                    Log.d("kk", "AudioFis= $target")
+                    return newFixedLengthResponse(Response.Status.OK, MIME_MPEG, fis, fileLength)
                 }
             }
 

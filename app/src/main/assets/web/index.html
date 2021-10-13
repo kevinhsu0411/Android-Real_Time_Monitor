@@ -23,8 +23,14 @@
 				</div>
 
 				<img id="imgCamera" class="img-responsive" src="" style="width:100%"/>
+
+				<audio
+						id="audioResource" autoplay controls src="" >
+				</audio>
+
 				<br>
 				<button onclick="StartPreview()" class="btn btn-lg btn-primary">Preview</button>
+				<button onclick="Play()" class="btn btn-lg btn-primary">Play</button>
 				<hr>
 			</div>
 		</div>
@@ -52,6 +58,23 @@
 					}
 				});
 	        }, refreshInterval);
+		}
+
+		function Play(){
+            $.ajax({
+                type: "GET",
+                url: "/api/audio",
+                success: function (data) {
+                	alert(data)
+                	$('#audioResource').attr('src',data);
+                },
+                failure: function (errMsg) {
+                    clearInterval(timer);
+                },
+                error: function(x,e){
+                     clearInterval(timer);
+                }
+            });
 		}
 
 	</script>

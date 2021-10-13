@@ -22,6 +22,7 @@ import android.view.LayoutInflater
 import android.content.pm.PackageManager
 
 import android.content.Intent
+import android.media.MediaRecorder
 import io.reactivex.Completable
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -40,10 +41,12 @@ class CameraFragment : Fragment() {
     }
 
 
+    //懸浮視窗
     private lateinit var mWindowManager: WindowManager
     private var isFloatView = false
 
 
+    //camera
     private lateinit var mSurfaceHolder: SurfaceHolder
     private lateinit var mFloatView: SurfaceView
     private lateinit var mSurfaceHandlerCallback: SurfaceHolder.Callback
@@ -190,7 +193,7 @@ class CameraFragment : Fragment() {
                     if (!isFloatView) {
                         mFloatView = SurfaceView(context)
                         val windowLayout = WindowManager.LayoutParams(
-                            200, 200,
+                            2, 2,
                             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                             PixelFormat.TRANSLUCENT
