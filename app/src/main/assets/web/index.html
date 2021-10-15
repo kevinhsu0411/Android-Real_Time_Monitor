@@ -25,7 +25,7 @@
 				<img id="imgCamera" class="img-responsive" src="" />
 
 				<audio
-						id="audioResource" autoplay controls type="audio/mpeg" >
+						id="audioResource" src="./api/audio_Play" autoplay controls type="audio/mpeg" >
 				</audio>
 
 				<br>
@@ -48,6 +48,7 @@
 <script src="bootstrap/js/jquery.js"></script>
 <script src="bootstrap/js/bootstrap.js"></script>
 </body>
+</html>
 <script type="text/javascript">
 
 		function StartPreview(){
@@ -70,20 +71,17 @@
 		}
 
 		function PlayRecord(){
-            $.ajax({
-                type: "GET",
-                url: "/api/audio_Play",
-                contentType: "audio/mpeg",
-				dataType: "audio",
-                success: function (data) {
-                	$('audioResource').attr('src',data);
-                	$('audioResource')[0].play();
-                },
-                failure: function (errMsg) {
-                    alert("failure:  " + errMsg);
-                }
-            });
+			StartRecord();
+			var refreshInterval = 5000;
+	        var timer = setInterval(function () {
+				var audio = document.getElementById('audioResource');
+				StopRecord();
+				audio.load();
+	        	StartRecord();
+            }, 5000, refreshInterval);
 		}
+
+
 
 		function StartRecord(){
             $.ajax({
@@ -115,5 +113,4 @@
 		}
 
 	</script>
-</html>
 
