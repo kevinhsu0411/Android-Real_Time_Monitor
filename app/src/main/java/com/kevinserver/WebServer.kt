@@ -19,6 +19,35 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
     val MIME_JSON = "application/json"
     val MIME_MPEG = "audio/mpeg"
 
+    private var mRecorder: MediaRecorder ?= null
+    private val audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
+    private val audioDefultFileName = MainActivity.ROOT_DIR_PATH + "/audiorecordtest.mp3"
+
+    private var isFirstRecorder = false
+    init {
+        Log.d("kk", "NanoHttpd init...")
+
+        //prepareMic()
+
+    }
+
+    fun prepareMic() {
+        Thread {
+            mRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(audioFileName)
+                try {
+                    prepare()
+                } catch (e: IOException) {
+                    Log.e("kk", "prepare() failed")
+                }
+                start()
+            }
+        }.start()
+    }
+
     override fun serve(session: IHTTPSession): Response {
         Log.d("KK", "serve uri: ${session.uri}")
 
@@ -33,7 +62,8 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                     val target = File(MainActivity.ROOT_DIR_PATH + "/camera/IMG_Kevin.jpg")
                     val mimeType = MimeTypeUtils.getMimeType(target.getName())
                     val fis = FileInputStream(target)
-                    return newFixedLengthResponse(Response.Status.OK, mimeType, fis, 100000000)
+                    Log.d("kk", "pic mimeType= $mimeType")
+                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
                 }
 
 
@@ -60,46 +90,49 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                     }
                 }
 
-                if (uri.endsWith("audio")) {
-                    val audioFileName = MainActivity.ROOT_DIR_PATH + "/audiorecordtest.mp3"
-//                    var audioFis: File ?= null
-
-//                    val recorder = MediaRecorder().apply {
-//                        setAudioSource(MediaRecorder.AudioSource.MIC)
-//                        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-//                        setOutputFile(audioFileName)
-//                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-//
-//                        try {
-//                            prepare()
-//                        } catch (e: IOException) {
-//                            Log.e("kk", "prepare() failed")
-//                        }
-//
-//                        start()
-//                    }
-
+                if (uri.endsWith("audio_Play")) {
                     val target = File(audioFileName)
+                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
                     val fileLength = target.length()
                     val fis = FileInputStream(target)
 
+                    Log.d("kk", "audio mimeType= $mimeType")
                     Log.d("kk", "AudioFis= $target")
-                    return newFixedLengthResponse(Response.Status.OK, MIME_MPEG, fis, fileLength)
+                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
                 }
+
+                if (uri.endsWith("audio_Start")) {
+                    prepareMic()
+                    return newFixedLengthResponse(Response.Status.OK,"", "")
+                }
+
+                if (uri.endsWith("audio_Stop")) {
+                    mRecorder?.apply {
+                        stop()
+                        release()
+                    }
+                    mRecorder = null
+                    return newFixedLengthResponse(Response.Status.OK, "", "")
+                }
+
+
             }
 
+            if (uri.endsWith("favicon.ico")) {
+                return newChunkedResponse(Response.Status.OK, MIME_HTML, null)
+            } else {
+                var filename = uri
+                if (filename == "/") filename = "/index.html"
 
-            var filename = uri
-            if (filename == "/") filename = "/index.html"
+                var inputStream: InputStream? = null
 
-            var inputStream: InputStream? = null
-
-            try {
-                inputStream = activity.getAssets().open("web" + filename)
-            } catch (e: IOException) {
-                e.printStackTrace()
+                try {
+                    inputStream = activity.getAssets().open("web" + filename)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+                return newChunkedResponse(Response.Status.OK, MIME_HTML, inputStream)
             }
-            return newChunkedResponse(Response.Status.OK, MIME_HTML, inputStream)
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         } catch (e: IOException) {
