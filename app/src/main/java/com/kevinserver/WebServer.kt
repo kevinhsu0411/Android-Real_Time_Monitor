@@ -21,7 +21,6 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
     private var mRecorder: MediaRecorder ?= null
     private val audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
-    private val audioDefultFileName = MainActivity.ROOT_DIR_PATH + "/audiorecordtest.mp3"
 
     private var isFirstRecorder = false
     init {

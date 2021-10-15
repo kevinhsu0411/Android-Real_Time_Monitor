@@ -73,10 +73,11 @@
             $.ajax({
                 type: "GET",
                 url: "/api/audio_Play",
+                contentType: "audio/mpeg",
+				dataType: "audio",
                 success: function (data) {
-                	$('#audio').html('<audio autoplay><source src=data></audio>');
-                	alert(data);
-
+                	$('audioResource').attr('src',data);
+                	$('audioResource')[0].play();
                 },
                 failure: function (errMsg) {
                     alert("failure:  " + errMsg);
