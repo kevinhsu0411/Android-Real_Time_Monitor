@@ -1,6 +1,5 @@
 package com.kevinserver
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
@@ -12,7 +11,6 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.kevinserver.databinding.FragmentCameraBinding
@@ -22,8 +20,8 @@ import android.view.LayoutInflater
 import android.content.pm.PackageManager
 
 import android.content.Intent
-import android.media.MediaRecorder
 import io.reactivex.Completable
+import io.reactivex.Observable
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -38,6 +36,7 @@ class CameraFragment : Fragment() {
     companion object {
         var imgRow: ByteArray ?= null
         var camera: Camera? = null
+        var queryPreviewIndex = 0
     }
 
 
@@ -53,6 +52,7 @@ class CameraFragment : Fragment() {
     private var mPreviewCallback = Camera.PreviewCallback{ data, camera ->
         imgRow = data
     }
+    private val mIdlePreviewTime = 30
 
     private var _binding: FragmentCameraBinding? = null
     // This property is only valid between onCreateView and
@@ -78,6 +78,7 @@ class CameraFragment : Fragment() {
         activity?.let { showWifiIp(it) }
         initView(view)
         timerHomeCheck()
+        timeOutStopPreview()
     }
 
     private fun initView(view: View) {
@@ -115,7 +116,6 @@ class CameraFragment : Fragment() {
 
                 camera?.setParameters(parameters)
                 camera?.setPreviewCallback(mPreviewCallback)
-                camera?.startPreview()
             }
 
             override fun surfaceDestroyed(p0: SurfaceHolder) {
@@ -126,19 +126,34 @@ class CameraFragment : Fragment() {
         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
 
         binding.svPreview.setOnClickListener(View.OnClickListener {
-            binding.coverImage.visibility = View.VISIBLE
+            //binding.coverImage.visibility = View.VISIBLE
+            if (imgRow == null) {
+                startPreview()
+            } else {
+                closePreview()
+            }
         })
         binding.buttonTakePic.setOnClickListener {
             takePic()
         }
 
         binding.coverImage.setOnClickListener {
-            it.isVisible = false
+            //it.isVisible = false
         }
     }
 
+    private fun startPreview() {
+        queryPreviewIndex = 0
+        camera?.startPreview()
+    }
 
-    fun takePic() {
+    private fun closePreview() {
+        camera?.stopPreview()
+        imgRow = null
+    }
+
+
+    private fun takePic() {
         camera?.takePicture(null, null, picture)
     }
 
@@ -147,7 +162,7 @@ class CameraFragment : Fragment() {
         super.onResume()
         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
         camera?.setPreviewCallback(mPreviewCallback)
-        camera?.startPreview()
+        startPreview()
     }
 
     var picture = PictureCallback { data, camera ->
@@ -157,7 +172,7 @@ class CameraFragment : Fragment() {
             fos.write(data)
             fos.close()
         }
-        camera.startPreview()
+        startPreview()
     }
 
 
@@ -206,7 +221,7 @@ class CameraFragment : Fragment() {
                         mSurfaceHolder = mFloatView.getHolder()
                         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
                         camera?.setPreviewCallback(mPreviewCallback)
-                        camera?.startPreview()
+                        startPreview()
                         isFloatView = true
                     }
                 } else {
@@ -217,8 +232,7 @@ class CameraFragment : Fragment() {
                             mWindowManager.removeView(mFloatView)
                             mSurfaceHolder = binding.svPreview.getHolder()
                             mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
-                            camera?.setPreviewCallback(mPreviewCallback)
-                            camera?.startPreview()
+                            startPreview()
                         }
                     }
                 }
@@ -249,6 +263,15 @@ class CameraFragment : Fragment() {
             }
         }
         return names
+    }
+
+    private fun timeOutStopPreview() {
+        Observable.interval(1, TimeUnit.SECONDS).subscribe {
+            queryPreviewIndex++
+            if (queryPreviewIndex >= mIdlePreviewTime) {
+                closePreview()
+            }
+        }
     }
 
 }

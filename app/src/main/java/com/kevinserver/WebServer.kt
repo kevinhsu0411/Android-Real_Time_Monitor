@@ -4,7 +4,6 @@ import android.app.Activity
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.hardware.Camera
 import android.media.MediaRecorder
 import android.util.Base64
 import android.util.Log
@@ -67,8 +66,8 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
 
                 if (uri.endsWith("preview")) {
+                    CameraFragment.queryPreviewIndex = 0
                     if (CameraFragment.imgRow == null) {
-                        CameraFragment.camera = Camera.open()
                         CameraFragment.camera?.startPreview()
                     } else {
                         val imgC = YuvImage(CameraFragment.imgRow, ImageFormat.NV21, 640, 480, null)
@@ -117,8 +116,8 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
             }
 
-            if (uri.endsWith("favicon.ico")) {
-                return newChunkedResponse(Response.Status.OK, MIME_HTML, null)
+            return if (uri.endsWith("favicon.ico")) {
+                newChunkedResponse(Response.Status.OK, MIME_HTML, null)
             } else {
                 var filename = uri
                 if (filename == "/") filename = "/index.html"
@@ -130,7 +129,7 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-                return newChunkedResponse(Response.Status.OK, MIME_HTML, inputStream)
+                newChunkedResponse(Response.Status.OK, MIME_HTML, inputStream)
             }
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
