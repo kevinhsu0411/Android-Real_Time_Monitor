@@ -9,7 +9,12 @@ import android.util.Base64
 import android.util.Log
 import com.lidroid.xutils.util.MimeTypeUtils
 import elonen.NanoHTTPD
+import io.reactivex.Completable
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import java.io.*
+import java.lang.Exception
+import java.util.concurrent.TimeUnit
 
 
 class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
@@ -21,11 +26,11 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
     private var mRecorder: MediaRecorder ?= null
     private val audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
 
-    private var isFirstRecorder = false
+    private lateinit var mAudioDisposable: Disposable
     init {
         Log.d("kk", "NanoHttpd init...")
 
-        //prepareMic()
+        prepareMic()
 
     }
 
@@ -42,8 +47,29 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                     Log.e("kk", "prepare() failed")
                 }
                 start()
+
             }
         }.start()
+    }
+
+    fun startMic() {
+        try {
+            prepareMic()
+        } catch (e: Exception) {
+
+        }
+    }
+
+    fun stopMic() {
+        try {
+            mRecorder?.apply {
+                stop()
+                release()
+            }
+            mRecorder = null
+        } catch (e: Exception) {
+
+        }
     }
 
     override fun serve(session: IHTTPSession): Response {
@@ -100,16 +126,20 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 }
 
                 if (uri.endsWith("audio_Start")) {
-                    prepareMic()
+                    mAudioDisposable = Observable.interval(5, TimeUnit.SECONDS).subscribe({
+                       stopMic()
+                        Completable.timer(300, TimeUnit.MILLISECONDS).subscribe {
+                            startMic()
+                        }
+                    }, {
+                        Log.e("kk", "Error ${it.printStackTrace()}")
+                    })
                     return newFixedLengthResponse(Response.Status.OK,"", "")
                 }
 
                 if (uri.endsWith("audio_Stop")) {
-                    mRecorder?.apply {
-                        stop()
-                        release()
-                    }
-                    mRecorder = null
+                    mAudioDisposable.dispose()
+                    startMic()
                     return newFixedLengthResponse(Response.Status.OK, "", "")
                 }
 

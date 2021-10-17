@@ -34,8 +34,8 @@
 				<button onclick="TackPicture()" class="btn btn-lg btn-primary">Picture</button>
 
 				<button onclick="StartRecord()" class="btn btn-lg btn-primary">Start Record</button>
-				<button onclick="StopRecord()" class="btn btn-lg btn-primary">Stop Record</button>
-				<button onclick="PlayRecord()" class="btn btn-lg btn-primary">Play Record</button>
+<!--				<button onclick="StopRecord()" class="btn btn-lg btn-primary">Stop Record</button>-->
+<!--				<button onclick="PlayRecord()" class="btn btn-lg btn-primary">Play Record</button>-->
 
 				<hr>
 
@@ -71,23 +71,22 @@
 		}
 
 		function PlayRecord(){
-			StartRecord();
 			var refreshInterval = 5000;
 	        var timer = setInterval(function () {
 				var audio = document.getElementById('audioResource');
-				StopRecord();
-				audio.load();
-	        	StartRecord();
-            }, 5000, refreshInterval);
+				audio.load()
+            }, refreshInterval);
 		}
 
 
 
 		function StartRecord(){
+			StopRecord()
             $.ajax({
                 type: "GET",
                 url: "/api/audio_Start",
             });
+            PlayRecord();
 		}
 
 		function StopRecord(){
