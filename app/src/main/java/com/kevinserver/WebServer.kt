@@ -139,7 +139,7 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
                 if (uri.endsWith("audio_Stop")) {
                     mAudioDisposable.dispose()
-                    startMic()
+                    //startMic()
                     return newFixedLengthResponse(Response.Status.OK, "", "")
                 }
 
