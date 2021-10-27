@@ -20,8 +20,11 @@ import android.view.LayoutInflater
 import android.content.pm.PackageManager
 
 import android.content.Intent
+import android.text.method.ScrollingMovementMethod
 import io.reactivex.Completable
 import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
@@ -37,6 +40,8 @@ class CameraFragment : Fragment() {
         var imgRow: ByteArray ?= null
         var camera: Camera? = null
         var queryPreviewIndex = 0
+
+        lateinit var observableEmitter: ObservableEmitter<Int>
     }
 
 
@@ -79,6 +84,14 @@ class CameraFragment : Fragment() {
         initView(view)
         timerHomeCheck()
         timeOutStopPreview()
+
+        val observable = Observable.create<Int>() {
+            observableEmitter = it
+        }.subscribe {
+            if (it == 1) {
+                switchNightMode()
+            }
+        }
     }
 
     private fun initView(view: View) {
@@ -87,7 +100,7 @@ class CameraFragment : Fragment() {
         mSurfaceHandlerCallback = object: SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
                 camera = Camera.open()
-                Log.d("kk", "CAMERA OPEN +++  surfaceCreated")
+                printLog("CAMERA OPEN +++  surfaceCreated")
 
         //        if (Build.VERSION.SDK_INT >= 8) { //轉90度
         //            camera.setDisplayOrientation(90)
@@ -103,30 +116,25 @@ class CameraFragment : Fragment() {
             override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
                 val parameters = camera?.getParameters()
 
-                val sizes = parameters?.supportedPictureSizes
-                if (sizes != null) {
-                    for (size in sizes) {
-                        Log.i("KK", "Available resolution: ${size.width} , ${size.height}")
-                    }
-                }
-
                 parameters?.pictureFormat = ImageFormat.JPEG
                 parameters?.previewFormat = ImageFormat.NV21
                 parameters?.setPreviewSize(640, 480)
+                parameters?.focusMode = "continuous-video"
+                parameters?.whiteBalance = "twilight"
+                //parameters?.exposureCompensation = 12
 
                 camera?.setParameters(parameters)
                 camera?.setPreviewCallback(mPreviewCallback)
             }
 
             override fun surfaceDestroyed(p0: SurfaceHolder) {
-                Log.d("kk", "CAMERA CLOSE ---  surfaceDestroyed ---")
+                printLog(  "CAMERA CLOSE ---  surfaceDestroyed ---")
             }
         }
 
         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
 
         binding.svPreview.setOnClickListener(View.OnClickListener {
-            //binding.coverImage.visibility = View.VISIBLE
             if (imgRow == null) {
                 startPreview()
             } else {
@@ -134,15 +142,14 @@ class CameraFragment : Fragment() {
             }
         })
         binding.buttonTakePic.setOnClickListener {
-            takePic()
+            switchNightMode()
         }
 
-        binding.coverImage.setOnClickListener {
-            //it.isVisible = false
-        }
+        binding.tvLog.movementMethod = ScrollingMovementMethod.getInstance()
     }
 
     private fun startPreview() {
+        printLog("startPreview")
         queryPreviewIndex = 0
         camera?.startPreview()
     }
@@ -157,8 +164,25 @@ class CameraFragment : Fragment() {
         camera?.takePicture(null, null, picture)
     }
 
+    var switchExposure = false
+    fun switchNightMode() {
+        val parameters = camera?.getParameters()
+        if (!switchExposure) {
+            parameters?.maxExposureCompensation?.let {
+                parameters?.exposureCompensation = it
+                printLog("switch 夜間模式: $it")
+            }
+            switchExposure = true
+        } else {
+            printLog("close 夜間模式 ")
+            parameters?.exposureCompensation = 0
+            switchExposure = false
+        }
+        camera?.setParameters(parameters)
+    }
+
     override fun onResume() {
-        Log.d("kk", "CAMERA onResume +++")
+        printLog( "CAMERA onResume +++")
         super.onResume()
         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
         camera?.setPreviewCallback(mPreviewCallback)
@@ -228,7 +252,7 @@ class CameraFragment : Fragment() {
                     if (isFloatView) {
                         isFloatView = false
                         Completable.timer(300, TimeUnit.MILLISECONDS).subscribe {
-                            Log.d("kk", "從懸浮視窗回歸")
+                            printLog( "從懸浮視窗回歸")
                             mWindowManager.removeView(mFloatView)
                             mSurfaceHolder = binding.svPreview.getHolder()
                             mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
@@ -274,4 +298,21 @@ class CameraFragment : Fragment() {
         }
     }
 
+    private fun printLog(msg: String) {
+        Log.d("kevin", msg)
+        binding.tvLog.post {
+            binding.tvLog.let {
+                val format = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+                it.append(
+                    "${
+                        format.format(Date(System.currentTimeMillis()))
+                    } ->  $msg\n"
+                )
+                val offset = it.lineCount * it.lineHeight
+                if (offset > it.height) {
+                    it.scrollTo(0, offset - it.height)
+                }
+            }
+        }
+    }
 }

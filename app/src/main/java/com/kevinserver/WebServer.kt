@@ -82,12 +82,13 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
 
                 if (uri.endsWith("pic")) {
+                    CameraFragment.observableEmitter.onNext(1)
                     //可呼叫相機拍照  等callback 再response
-                    val target = File(MainActivity.ROOT_DIR_PATH + "/camera/IMG_Kevin.jpg")
-                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
-                    val fis = FileInputStream(target)
-                    Log.d("kk", "pic mimeType= $mimeType")
-                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
+//                    val target = File(MainActivity.ROOT_DIR_PATH + "/camera/IMG_Kevin.jpg")
+//                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
+//                    val fis = FileInputStream(target)
+//                    Log.d("kk", "pic mimeType= $mimeType")
+//                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
                 }
 
 

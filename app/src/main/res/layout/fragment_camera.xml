@@ -52,13 +52,27 @@
         android:id="@+id/wifi_ip"
         android:layout_width="match_parent"
         android:layout_height="20dp"
-        android:layout_marginTop="124dp"
+        android:layout_marginTop="96dp"
         android:background="@color/white"
         android:text="http:// "
         android:textAlignment="center"
         android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/svPreview" />
+
+    <TextView
+        android:id="@+id/tv_log"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginTop="16dp"
+        android:gravity="start|top"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:background="@color/white"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@+id/wifi_ip"
+        tools:layout_editor_absoluteX="0dp" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

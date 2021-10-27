@@ -31,7 +31,7 @@
 				<br>
 				<button onclick="StartPreview()" class="btn btn-lg btn-primary">Preview</button>
 
-				<button onclick="TackPicture()" class="btn btn-lg btn-primary">Picture</button>
+				<button onclick="TackPicture()" class="btn btn-lg btn-primary">夜間模式</button>
 
 				<button onclick="StartRecord()" class="btn btn-lg btn-primary">Start Record</button>
 <!--				<button onclick="StopRecord()" class="btn btn-lg btn-primary">Stop Record</button>-->
@@ -52,7 +52,7 @@
 <script type="text/javascript">
 
 		function StartPreview(){
-			var refreshInterval = 300;
+			var refreshInterval = 200;
 	        var timer = setInterval(function () {
 	            $.ajax({
 					type: "GET",
@@ -102,8 +102,8 @@
                 contentType: "image/jpeg",
                 url: "/api/pic",
                 success: function (data) {
-                	$('#imgPicture').attr('src','data:image/jpeg;base64,' + window.btoa(unescape(encodeURIComponent(JSON.stringify(data)))));
-                	alert(imgPicture);
+<!--                	$('#imgPicture').attr('src','data:image/jpeg;base64,' + window.btoa(unescape(encodeURIComponent(JSON.stringify(data)))));-->
+<!--                	alert(imgPicture);-->
                 },
                 failure: function (errMsg) {
                 	alert(errMsg);
