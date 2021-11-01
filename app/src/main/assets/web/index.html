@@ -31,7 +31,7 @@
 				<br>
 				<button onclick="StartPreview()" class="btn btn-lg btn-primary">Preview</button>
 
-				<button onclick="TackPicture()" class="btn btn-lg btn-primary">夜間模式</button>
+				<button onclick="SwitchAE_mode()" class="btn btn-lg btn-primary">夜間模式</button>
 
 				<button onclick="StartRecord()" class="btn btn-lg btn-primary">Start Record</button>
 <!--				<button onclick="StopRecord()" class="btn btn-lg btn-primary">Stop Record</button>-->
@@ -39,7 +39,7 @@
 
 				<hr>
 
-				<img id="imgPicture" class="img-responsive" src="" alt="一張圖片" style="width:100%" >
+<!--				<img id="imgPicture" class="img-responsive" src="" alt="一張圖片" style="width:100%" >-->
 			</div>
 		</div>
 	</div>
@@ -50,6 +50,18 @@
 </body>
 </html>
 <script type="text/javascript">
+
+		function SwitchAE_mode() {
+			$.ajax({
+                type: "GET",
+                url: "/api/exposure",
+                success: function (data) {
+                },
+                failure: function (errMsg) {
+                	alert(errMsg);
+                }
+            });
+		}
 
 		function StartPreview(){
 			var refreshInterval = 200;

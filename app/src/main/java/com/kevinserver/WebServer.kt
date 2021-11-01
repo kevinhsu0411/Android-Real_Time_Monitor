@@ -1,9 +1,12 @@
 package com.kevinserver
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
+import android.media.AudioFormat
+import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Base64
 import android.util.Log
@@ -13,24 +16,26 @@ import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import java.io.*
-import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
 
 class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
-    val MIME_HTML = "text/html"
-    val MIME_JSON = "application/json"
-    val MIME_MPEG = "audio/mpeg"
+    private val MIME_HTML = "text/html"
+    private val MIME_JSON = "application/json"
+    private val MIME_MPEG = "audio/mpeg"
+
+    private var pipedInputStream = PipedInputStream()
+    private var pipedOutputStream = PipedOutputStream()
 
     private var mRecorder: MediaRecorder ?= null
     private val audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
 
-    private lateinit var mAudioDisposable: Disposable
+    private var mAudioDisposable: Disposable ?= null
     init {
         Log.d("kk", "NanoHttpd init...")
 
-        prepareMic()
+        //prepareMic()
 
     }
 
@@ -80,15 +85,17 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
 
             if (uri.startsWith("/api")) {
 
+                if (uri.endsWith("exposure")) {
+                    CameraFragment.observableEmitter.onNext(1)
+                }
 
                 if (uri.endsWith("pic")) {
-                    CameraFragment.observableEmitter.onNext(1)
                     //可呼叫相機拍照  等callback 再response
-//                    val target = File(MainActivity.ROOT_DIR_PATH + "/camera/IMG_Kevin.jpg")
-//                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
-//                    val fis = FileInputStream(target)
-//                    Log.d("kk", "pic mimeType= $mimeType")
-//                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
+                    val target = File(MainActivity.ROOT_DIR_PATH + "/camera/IMG_Kevin.jpg")
+                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
+                    val fis = FileInputStream(target)
+                    Log.d("kk", "pic mimeType= $mimeType")
+                    return newChunkedResponse(Response.Status.OK, mimeType, fis)
                 }
 
 
@@ -139,7 +146,7 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 }
 
                 if (uri.endsWith("audio_Stop")) {
-                    mAudioDisposable.dispose()
+                    mAudioDisposable?.dispose()
                     //startMic()
                     return newFixedLengthResponse(Response.Status.OK, "", "")
                 }
