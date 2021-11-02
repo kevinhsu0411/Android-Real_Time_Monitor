@@ -82,9 +82,11 @@
 	        }, refreshInterval);
 		}
 
+
+		var recordPlayInterval = null
 		function PlayRecord(){
 			var refreshInterval = 5000;
-	        var timer = setInterval(function () {
+	        recordPlayInterval = setInterval(function () {
 				var audio = document.getElementById('audioResource');
 				audio.load()
             }, refreshInterval);
@@ -93,6 +95,9 @@
 
 
 		function StartRecord(){
+			if ( recordPlayInterval != null ) {
+				clearInterval(recordPlayInterval)
+			}
 			StopRecord()
             $.ajax({
                 type: "GET",
