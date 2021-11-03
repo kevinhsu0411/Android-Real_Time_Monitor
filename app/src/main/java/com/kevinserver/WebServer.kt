@@ -1,12 +1,9 @@
 package com.kevinserver
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.ImageFormat
 import android.graphics.Rect
 import android.graphics.YuvImage
-import android.media.AudioFormat
-import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Base64
 import android.util.Log
@@ -25,11 +22,10 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
     private val MIME_JSON = "application/json"
     private val MIME_MPEG = "audio/mpeg"
 
-    private var pipedInputStream = PipedInputStream()
-    private var pipedOutputStream = PipedOutputStream()
-
     private var mRecorder: MediaRecorder ?= null
-    private val audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
+    private val MP3_audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.mp3"
+    private val PCM_audioFileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.pcm"
+
 
     private var mAudioDisposable: Disposable ?= null
     init {
@@ -45,7 +41,7 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setOutputFile(audioFileName)
+                setOutputFile(MP3_audioFileName)
                 try {
                     prepare()
                 } catch (e: IOException) {
@@ -123,7 +119,7 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 }
 
                 if (uri.endsWith("audio_Play")) {
-                    val target = File(audioFileName)
+                    val target = File(MP3_audioFileName)
                     val mimeType = MimeTypeUtils.getMimeType(target.getName())
                     val fileLength = target.length()
                     val fis = FileInputStream(target)
@@ -149,6 +145,14 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                     mAudioDisposable?.dispose()
                     //startMic()
                     return newFixedLengthResponse(Response.Status.OK, "", "")
+                }
+
+                if (uri.endsWith("audio")) {
+                    val target = File(PCM_audioFileName)
+                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
+                    val fis = FileInputStream(target)
+
+                    return newChunkedResponse(Response.Status.OK, "audio/mpeg", fis)
                 }
 
 
