@@ -60,7 +60,7 @@ class ClientFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.clientNextPage.setOnClickListener {
-            findNavController().navigate(R.id.action_ThreedFragment_to_FirstFragment)
+            findNavController().navigate(R.id.ThreedFragment)
         }
 
         binding.clientAudioRecord.setOnClickListener {

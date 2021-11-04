@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.kevinserver.databinding.FragmentCameraBinding
 import java.io.*
 import android.view.LayoutInflater
@@ -24,6 +23,8 @@ import android.text.method.ScrollingMovementMethod
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
+import io.reactivex.disposables.Disposable
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -76,9 +77,6 @@ class CameraFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonSecond.setOnClickListener {
-            findNavController().navigate(R.id.action_SecondFragment_to_ThreedFragment)
-        }
 
         activity?.let { showWifiIp(it) }
         initView(view)
@@ -149,9 +147,13 @@ class CameraFragment : Fragment() {
     }
 
     private fun startPreview() {
-        printLog("startPreview")
+        printLog("start Preview")
         queryPreviewIndex = 0
-        camera?.startPreview()
+        try {
+            camera?.startPreview()
+        } catch (e: Exception) {
+            printLog("*** can not startPreview ***")
+        }
     }
 
     private fun closePreview() {
@@ -182,11 +184,22 @@ class CameraFragment : Fragment() {
     }
 
     override fun onResume() {
-        printLog( "CAMERA onResume +++")
+        printLog( "Camera Fragment onResume +++")
         super.onResume()
         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
         camera?.setPreviewCallback(mPreviewCallback)
-        startPreview()
+        Completable.timer(2, TimeUnit.SECONDS).subscribe { startPreview() }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        printLog( "Camera Fragment onDestroy +++")
+        timeOutStopPreviewDisposable?.dispose()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        printLog( "Camera Fragment onPause +++")
     }
 
     var picture = PictureCallback { data, camera ->
@@ -245,7 +258,7 @@ class CameraFragment : Fragment() {
                         mSurfaceHolder = mFloatView.getHolder()
                         mSurfaceHolder.addCallback(mSurfaceHandlerCallback)
                         camera?.setPreviewCallback(mPreviewCallback)
-                        startPreview()
+                        Completable.timer(2, TimeUnit.SECONDS).subscribe { startPreview() }
                         isFloatView = true
                     }
                 } else {
@@ -265,14 +278,19 @@ class CameraFragment : Fragment() {
     }
 
     fun isHome(): Boolean {
-        val mActivityManager = activity?.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val rti = mActivityManager.getRunningTasks(1);
-        val strs = getHomes()
-        if (strs != null && strs.size > 0) {
-            return strs.contains(rti.get(0).topActivity?.getPackageName())
-        } else {
-            return false;
+        try {
+            val mActivityManager = activity?.let { it.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager }
+            val rti = mActivityManager?.getRunningTasks(1)
+            val strs = getHomes()
+            if (strs != null && strs.size > 0) {
+                return strs.contains(rti?.get(0)?.topActivity?.getPackageName())
+            } else {
+                return false
+            }
+        } catch (e: Exception) {
+            printLog(e.toString())
         }
+        return false;
     }
 
     private fun getHomes(): List<String>? {
@@ -289,8 +307,9 @@ class CameraFragment : Fragment() {
         return names
     }
 
+    var timeOutStopPreviewDisposable: Disposable ?= null
     private fun timeOutStopPreview() {
-        Observable.interval(1, TimeUnit.SECONDS).subscribe {
+        timeOutStopPreviewDisposable = Observable.interval(1, TimeUnit.SECONDS).subscribe {
             queryPreviewIndex++
             if (queryPreviewIndex >= mIdlePreviewTime) {
                 closePreview()

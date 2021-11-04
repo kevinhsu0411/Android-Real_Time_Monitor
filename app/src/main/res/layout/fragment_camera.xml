@@ -11,7 +11,9 @@
         android:id="@+id/svPreview"
         android:layout_width="640px"
         android:layout_height="480px"
+        android:layout_marginTop="70dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
@@ -26,33 +28,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
     <Button
         android:id="@+id/button_take_pic"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="P"
-        app:layout_constraintEnd_toEndOf="@+id/svPreview"
-        app:layout_constraintHorizontal_bias="0.136"
+        android:layout_marginTop="44dp"
+        android:text="Night Mode"
+        android:textAllCaps="false"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/svPreview" />
-
-    <Button
-        android:id="@+id/button_second"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="108dp"
-        android:layout_marginTop="40dp"
-        android:text="@string/previous"
-        app:layout_constraintStart_toEndOf="@+id/button_take_pic"
-        app:layout_constraintTop_toBottomOf="@+id/svPreview"
-        tools:ignore="MissingConstraints" />
 
     <TextView
         android:id="@+id/wifi_ip"
         android:layout_width="match_parent"
         android:layout_height="20dp"
-        android:layout_marginTop="96dp"
+        android:layout_marginTop="112dp"
         android:background="@color/white"
         android:text="http:// "
         android:textAlignment="center"
