@@ -10,30 +10,20 @@
         android:name="com.kevinserver.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
-
-<!--        <action-->
-<!--            android:id="@+id/action_FirstFragment_to_SecondFragment"-->
-<!--            app:destination="@id/SecondFragment" />-->
     </fragment>
+
     <fragment
         android:id="@+id/SecondFragment"
         android:name="com.kevinserver.CameraFragment"
         android:label="Camera Fragment"
         tools:layout="@layout/fragment_camera">
-
-<!--        <action-->
-<!--            android:id="@+id/action_SecondFragment_to_ThreedFragment"-->
-<!--            app:destination="@id/ThreedFragment" />-->
     </fragment>
+
     <fragment
         android:id="@+id/ThreedFragment"
         android:name="com.kevinserver.ClientFragment"
         android:label="Client Fragment"
         tools:layout="@layout/fragment_client">
-
-<!--        <action-->
-<!--            android:id="@+id/action_ThreedFragment_to_FirstFragment"-->
-<!--            app:destination="@id/FirstFragment" />-->
     </fragment>
 
 </navigation>
