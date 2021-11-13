@@ -148,11 +148,8 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                 }
 
                 if (uri.endsWith("audio")) {
-                    val target = File(PCM_audioFileName)
-                    val mimeType = MimeTypeUtils.getMimeType(target.getName())
-                    val fis = FileInputStream(target)
-
-                    return newChunkedResponse(Response.Status.OK, "audio/mpeg", fis)
+                    val audioInputStream = AudioInputStream()
+                    return newChunkedResponse(Response.Status.OK, "audio/mpeg", audioInputStream)
                 }
 
 

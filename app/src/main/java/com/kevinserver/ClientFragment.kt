@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.kevinserver.databinding.FragmentClientBinding
 import android.annotation.SuppressLint
 import android.media.AudioRecord
@@ -17,30 +16,28 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 
 import java.io.*
+import android.graphics.BitmapFactory
+import android.util.Base64
+import io.reactivex.Observable
+import java.util.concurrent.TimeUnit
 
 
 class ClientFragment : Fragment() {
 
-    var isRecording = false //是否正在录音的标记
-    var isPlaying = false //是否正在放音的标记
+    private var isRecording = false
+    private var isPlaying = false
 
-    val sampleRate: Int = 8000
-    val channelConfig: Int = AudioFormat.CHANNEL_CONFIGURATION_MONO
-    val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
-    val bufferSizeInBytes: Int = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
+    private val mSampleRate: Int = 8000
+    private val mChannelConfig: Int = AudioFormat.CHANNEL_CONFIGURATION_MONO
+    private val mAudioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
+    private val mAudioTrackPlayBufSize: Int = AudioTrack.getMinBufferSize(mSampleRate, mChannelConfig, mAudioFormat)
 
     //AudioRecord
-    val audioSource: Int = MediaRecorder.AudioSource.MIC
+    private val mAudioSource: Int = MediaRecorder.AudioSource.MIC
     @SuppressLint("MissingPermission")
-    val audioRecord = AudioRecord(audioSource, sampleRate, channelConfig, audioFormat, bufferSizeInBytes)
-    val recBufSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
-    //AudioTrack
-    val streamType: Int = AudioManager.STREAM_MUSIC
-    //val audioTrack = AudioTrack(streamType, sampleRate, channelConfig, audioFormat, bufferSizeInBytes, AudioTrack.MODE_STREAM)
-    val playBufSize = AudioTrack.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
-    val PCM_FileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.pcm"
+    val audioRecord = AudioRecord(mAudioSource, mSampleRate, mChannelConfig, mAudioFormat, mAudioTrackPlayBufSize)
+    private val mRecordBufSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelConfig, mAudioFormat)
+    private val mPCM_FileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.pcm"
 
     private var _binding: FragmentClientBinding? = null
     // This property is only valid between onCreateView and
@@ -59,76 +56,117 @@ class ClientFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.clientNextPage.setOnClickListener {
-            findNavController().navigate(R.id.ThreedFragment)
-        }
-
         binding.clientAudioRecord.setOnClickListener {
-            Log.d("kevin", "clientAudioRecord")
+            Log.d("kevin", "本地錄音 AudioRecord")
             isRecording = true
             isPlaying = false
-            Record2FileThread()
+            record2FileThread()
         }
 
-        binding.clientAudioTrack.setOnClickListener {
-            Log.d("kevin", "clientAudioTrack")
+        binding.clientAudioTrackLocal.setOnClickListener {
             isRecording = false
             isPlaying = true
-
-            val audioInputStream = AudioInputStream()
-            PlayThread(audioInputStream)
+            playLocalFileThread()
         }
 
+        binding.clientPreview.setOnClickListener {
+            Log.d("kevin", "client Preview")
+
+            playRealTime_Audio_Stream()
+            playRealTime_Camera_Stream()
+
+        }
+    }
+
+    @SuppressLint("CheckResult")
+    private fun playRealTime_Camera_Stream() {
+        Thread {
+            Observable.interval(100, TimeUnit.MILLISECONDS).subscribe ({
+                val serverIP = binding.clientEdIP.text.toString()
+                var base64 = ""
+                val response = KevinServerApi.getInstance(serverIP).getCameraStream().execute()
+                response.body()?.let {
+                    base64 = it.string()
+                }
+
+                if (response.isSuccessful && base64 != "") {
+                    val decodedString = Base64.decode(base64.split(",")[1], Base64.DEFAULT)
+                    val decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.size)
+                    activity?.runOnUiThread {
+                        binding.clientImvPreview.setImageBitmap(decodedByte)
+                    }
+                }
+            }, {
+                Log.d("playRealTime_Camera_Stream", "${it}")
+            })
+        }.start()
     }
 
 
-    fun Record2FileThread() {
+    private fun playRealTime_Audio_Stream() {
         Thread {
             try {
-                val pcmFile = File(PCM_FileName)
+                val serverIP = binding.clientEdIP.text.toString()
+                val audioPlayer = AudioTrackPlayer()
+                val response = KevinServerApi.getInstance(serverIP).getAudioStream().execute()
+                val inputStream = response.body()?.byteStream()
 
-                val buffer = ByteArray(recBufSize)
-                val bos = BufferedOutputStream(FileOutputStream(pcmFile), recBufSize)
-                audioRecord.startRecording() //开始录制
+                if (response.isSuccessful && inputStream != null) {
+                    val buffer = ByteArray(mAudioTrackPlayBufSize)
+
+                    while (inputStream.read(buffer) != -1) {
+                        audioPlayer.write(buffer, 0, buffer.size)
+                    }
+                    audioPlayer.close()
+                }
+            } catch (t: Throwable) {
+                Log.e("kevin", t.toString())
+            }
+        }.start()
+    }
+
+    private fun record2FileThread() {
+        Thread {
+            try {
+                val pcmFile = File(mPCM_FileName)
+                val buffer = ByteArray(mRecordBufSize)
+                val bos = BufferedOutputStream(FileOutputStream(pcmFile), mRecordBufSize)
+                audioRecord.startRecording()
+
                 while (isRecording) {
-                    //从MIC保存数据到缓冲区
-                    val bufferReadResult: Int = audioRecord.read(
-                        buffer, 0,
-                        recBufSize
-                    )
+                    val bufferReadResult = audioRecord.read(buffer, 0, mRecordBufSize)
                     val tmpBuf = ByteArray(bufferReadResult)
                     System.arraycopy(buffer, 0, tmpBuf, 0, bufferReadResult)
-                    //写入数据
                     bos.write(tmpBuf, 0, tmpBuf.size)
                 }
+
                 bos.flush()
                 bos.close()
                 audioRecord.stop()
-            } catch (t: Throwable) {
-            }
+            } catch (t: Throwable) { }
         }.start()
     }
 
-    fun PlayThread(audioInputStream: AudioInputStream) {
-        val audioTrack = AudioOutputStream()
+    private fun playLocalFileThread() {
+        Log.d("kevin", "播放錄音檔")
+        val audioTrack = AudioTrackPlayer()
         Thread {
             try {
-                val buffer = ByteArray(playBufSize)
-                val bis = audioInputStream //BufferedInputStream(FileInputStream(PCM_FileName), 1024) //playBufSize or 1024
-                while (isPlaying && bis.read(buffer) != -1) {
-                    //写入数据即播放
+                val buffer = ByteArray(mAudioTrackPlayBufSize)
+                val bis = BufferedInputStream(FileInputStream(mPCM_FileName), 1024)
+
+                while (bis.read(buffer) != -1) {
                     audioTrack.write(buffer, 0, buffer.size)
                 }
+
                 audioTrack.close()
                 bis.close()
-            } catch (t: Throwable) {
-                Log.d("kevin", t.toString())
-            }
+            } catch (t: Throwable) { Log.d("playLocalFileThread", t.toString()) }
         }.start()
     }
 
 
-    inner class AudioOutputStream(
+    inner class AudioTrackPlayer(
         streamType: Int = AudioManager.STREAM_MUSIC,
         sampleRate: Int = 8000,
         channelConfig: Int = AudioFormat.CHANNEL_OUT_MONO,

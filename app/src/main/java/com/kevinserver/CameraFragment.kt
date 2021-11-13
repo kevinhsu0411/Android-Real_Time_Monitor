@@ -114,6 +114,13 @@ class CameraFragment : Fragment() {
             override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
                 val parameters = camera?.getParameters()
 
+//                val support = parameters?.supportedPreviewSizes
+//                support?.let {
+//                    for (i in 0..it.size) {
+//                        Log.d("surfaceChanged", "supportedPreviewSizes = ${it[i].width} * ${it[i].height}")
+//                    }
+//                }
+
                 parameters?.pictureFormat = ImageFormat.JPEG
                 parameters?.previewFormat = ImageFormat.NV21
                 parameters?.setPreviewSize(640, 480)
