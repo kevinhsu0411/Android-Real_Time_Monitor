@@ -11,6 +11,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kevinserver.databinding.FragmentClientBinding
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
+import android.content.SharedPreferences
 import android.media.AudioRecord
 
 import android.media.MediaRecorder
@@ -24,7 +27,9 @@ import java.util.concurrent.TimeUnit
 
 class ClientFragment : Fragment() {
 
-    private var isRecording = false
+    private var mSharedPreferences: SharedPreferences ?= null
+
+    private  var isRecording = false
     private var isPlaying = false
 
     private val mSampleRate: Int = 8000
@@ -55,6 +60,12 @@ class ClientFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        mSharedPreferences = activity?.getSharedPreferences("server", MODE_PRIVATE)
+
+        mSharedPreferences?.getString("ip", "")?.let {
+            binding.clientEdIP.setText(it)
+        }
 
         binding.clientAudioRecord.setOnClickListener {
             Log.d("kevin", "本地錄音 AudioRecord")
@@ -112,7 +123,11 @@ class ClientFragment : Fragment() {
                 val inputStream = response.body()?.byteStream()
 
                 if (response.isSuccessful && inputStream != null) {
+
+                    mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
+
                     val buffer = ByteArray(mAudioTrackPlayBufSize)
+
 
                     while (inputStream.read(buffer) != -1) {
                         audioPlayer.write(buffer, 0, buffer.size)
