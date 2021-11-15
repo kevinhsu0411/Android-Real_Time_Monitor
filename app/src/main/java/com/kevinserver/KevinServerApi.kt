@@ -1,5 +1,6 @@
 package com.kevinserver
 
+import android.util.Log
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -24,11 +25,16 @@ interface KevinServerApi {
 
         fun getInstance(ip: String): KevinServerApi = instance?: synchronized(KevinServerApi::class.java){
             instance?:Retrofit.Builder()
-                .baseUrl("http://$ip:8080/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(KevinServerApi::class.java)
-                .also { instance = it }
+            .baseUrl("http://$ip:8080/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(KevinServerApi::class.java)
+            .also {
+                if ( it.getCameraStream().execute().code() == 200 ) {
+                    Log.d("kk", "KevinServerApi Retrofit2 = 200")
+                    instance = it
+                }
+            }
         }
     }
 }
