@@ -2,11 +2,11 @@
   - 音訊與影像流播放
   - navigation bar 切換 server與client
 
-# Android-NanoServer
+# NanoHTTPD
   - 架設index.html
   - 撰寫/api/  提供即時音訊與影像
   
-# Web 
+# Web
   - html -> preview
 
 # Camera
