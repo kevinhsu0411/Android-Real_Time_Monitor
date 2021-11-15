@@ -7,11 +7,11 @@
   - 撰寫/api/  提供即時音訊與影像
   
 # Web 
-  -html -> preview
+  - html -> preview
 
 # Camera
-  -take picture
-  -preview
+  - take picture
+  - preview
 
 # AudioRecord & AudioTrack
-  -本地pcm音訊錄製與播放
+  - 本地pcm音訊錄製與播放
