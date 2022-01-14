@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kevinserver.databinding.FragmentClientBinding
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.SharedPreferences
 import android.media.AudioRecord
@@ -43,6 +42,7 @@ class ClientFragment : Fragment() {
     val audioRecord = AudioRecord(mAudioSource, mSampleRate, mChannelConfig, mAudioFormat, mAudioTrackPlayBufSize)
     private val mRecordBufSize = AudioRecord.getMinBufferSize(mSampleRate, mChannelConfig, mAudioFormat)
     private val mPCM_FileName = MainActivity.ROOT_DIR_PATH + "/kevinAudio.pcm"
+    private var mPCM_thread = Thread{ }
 
     private var _binding: FragmentClientBinding? = null
     // This property is only valid between onCreateView and
@@ -83,8 +83,8 @@ class ClientFragment : Fragment() {
         binding.clientPreview.setOnClickListener {
             Log.d("kevin", "client Preview")
 
-            playRealTime_Audio_Stream()
             playRealTime_Camera_Stream()
+            setReceivePCM_RefreshInterval()
 
         }
     }
@@ -113,9 +113,16 @@ class ClientFragment : Fragment() {
         }.start()
     }
 
+    private fun setReceivePCM_RefreshInterval() {
+        playRealTime_Audio_Stream()
+        Observable.interval(30, TimeUnit.SECONDS).subscribe({
+            playRealTime_Audio_Stream()
+        }, {})
+    }
 
     private fun playRealTime_Audio_Stream() {
-        Thread {
+        mPCM_thread.interrupt()
+        mPCM_thread = Thread {
             try {
                 val serverIP = binding.clientEdIP.text.toString()
                 val audioPlayer = AudioTrackPlayer()
@@ -126,18 +133,18 @@ class ClientFragment : Fragment() {
 
                     mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
 
-                    val buffer = ByteArray(mAudioTrackPlayBufSize)
+                    val pcmStreamBuffer = ByteArray(mAudioTrackPlayBufSize)
 
-
-                    while (inputStream.read(buffer) != -1) {
-                        audioPlayer.write(buffer, 0, buffer.size)
+                    while (inputStream.read(pcmStreamBuffer) != -1) {
+                        audioPlayer.write(pcmStreamBuffer, 0, pcmStreamBuffer.size)
                     }
                     audioPlayer.close()
                 }
             } catch (t: Throwable) {
                 Log.e("kevin", t.toString())
             }
-        }.start()
+        }
+        mPCM_thread.start()
     }
 
     private fun record2FileThread() {
