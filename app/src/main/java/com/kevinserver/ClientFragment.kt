@@ -87,6 +87,12 @@ class ClientFragment : Fragment() {
             setReceivePCM_RefreshInterval()
 
         }
+
+        binding.motorOpenButton.setOnClickListener {
+            Log.d("kevin", "motorOpenButton")
+
+
+        }
     }
 
     @SuppressLint("CheckResult")
