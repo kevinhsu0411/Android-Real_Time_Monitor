@@ -19,9 +19,15 @@ import android.media.MediaRecorder
 
 import java.io.*
 import android.graphics.BitmapFactory
+import android.provider.Settings
 import android.util.Base64
 import io.reactivex.Observable
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
+import java.net.Socket
+import java.nio.charset.Charset
 
 
 class ClientFragment : Fragment() {
@@ -90,8 +96,14 @@ class ClientFragment : Fragment() {
 
         binding.motorOpenButton.setOnClickListener {
             Log.d("kevin", "motorOpenButton")
+            val serverIP = binding.clientEdIP.text.toString()
+            Client(serverIP, 8700).setMotor(true)
+        }
 
-
+        binding.motorCloseButton.setOnClickListener {
+            Log.d("kevin", "motorCloseButton")
+            val serverIP = binding.clientEdIP.text.toString()
+            Client(serverIP, 8700).setMotor(false)
         }
     }
 
@@ -228,5 +240,30 @@ class ClientFragment : Fragment() {
             super.close()
         }
     }
+
+    class Client(val address: String, val port: Int) {
+        private lateinit var connection: Socket
+        private lateinit var message: String
+
+        fun setMotor(state: Boolean) {
+            GlobalScope.launch {
+                try {
+                    println("Connect to server at $address on port $port")
+                    connection = Socket(address, port)
+
+                    val writer: OutputStream = connection.getOutputStream()
+                    message = if (state) { "openMotor" } else { "closeMotor" }
+
+                    writer.write((message).toByteArray(Charset.defaultCharset()))
+                    println("Connected +++ $message")
+                    connection.close()
+                } catch (e: Exception) {
+                    Log.d("kevin", e.toString())
+                }
+            }
+        }
+    }
+
+
 }
 

@@ -59,6 +59,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/client_audioRecord" />
 
+    <EditText
+        android:id="@+id/motorMsg"
+        android:layout_width="306dp"
+        android:layout_height="63dp"
+        android:layout_marginTop="12dp"
+        android:background="@color/teal_200"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.288"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/motor_close_button" />
+
     <Button
         android:id="@+id/motor_open_button"
         android:layout_width="wrap_content"
