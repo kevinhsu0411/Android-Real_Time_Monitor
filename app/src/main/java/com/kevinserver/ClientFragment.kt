@@ -73,6 +73,10 @@ class ClientFragment : Fragment() {
             binding.clientEdIP.setText(it)
         }
 
+        mSharedPreferences?.getString("port", "")?.let {
+            binding.clientEdPORT.setText(it)
+        }
+
         binding.clientAudioRecord.setOnClickListener {
             Log.d("kevin", "本地錄音 AudioRecord")
             isRecording = true
@@ -97,13 +101,21 @@ class ClientFragment : Fragment() {
         binding.motorOpenButton.setOnClickListener {
             Log.d("kevin", "motorOpenButton")
             val serverIP = binding.clientEdIP.text.toString()
-            Client(serverIP, 8700).setMotor(true)
+            val serverPORT = binding.clientEdPORT.text.toString()
+            Client(serverIP, serverPORT.toInt()).setMotor(true)
+
+            mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
+            mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
         }
 
         binding.motorCloseButton.setOnClickListener {
             Log.d("kevin", "motorCloseButton")
             val serverIP = binding.clientEdIP.text.toString()
-            Client(serverIP, 8700).setMotor(false)
+            val serverPORT = binding.clientEdPORT.text.toString()
+            Client(serverIP, serverPORT.toInt()).setMotor(false)
+
+            mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
+            mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
         }
     }
 
@@ -243,18 +255,19 @@ class ClientFragment : Fragment() {
 
     class Client(val address: String, val port: Int) {
         private lateinit var connection: Socket
-        private lateinit var message: String
+        private lateinit var message: ByteArray
 
         fun setMotor(state: Boolean) {
+            Log.d("kevin", "port = $port")
             GlobalScope.launch {
                 try {
                     println("Connect to server at $address on port $port")
                     connection = Socket(address, port)
 
                     val writer: OutputStream = connection.getOutputStream()
-                    message = if (state) { "openMotor" } else { "closeMotor" }
+                    message = if (state) { byteArrayOf(0x32) } else { byteArrayOf(0x33) }
 
-                    writer.write((message).toByteArray(Charset.defaultCharset()))
+                    writer.write(message)
                     println("Connected +++ $message")
                     connection.close()
                 } catch (e: Exception) {
