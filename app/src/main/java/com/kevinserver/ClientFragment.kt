@@ -19,15 +19,12 @@ import android.media.MediaRecorder
 
 import java.io.*
 import android.graphics.BitmapFactory
-import android.provider.Settings
 import android.util.Base64
 import io.reactivex.Observable
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 import java.net.Socket
-import java.nio.charset.Charset
 
 
 class ClientFragment : Fragment() {
@@ -254,22 +251,21 @@ class ClientFragment : Fragment() {
     }
 
     class Client(val address: String, val port: Int) {
-        private lateinit var connection: Socket
-        private lateinit var message: ByteArray
+//        private lateinit var message: ByteArray
+        private lateinit var message: String
 
         fun setMotor(state: Boolean) {
             Log.d("kevin", "port = $port")
             GlobalScope.launch {
                 try {
                     println("Connect to server at $address on port $port")
-                    connection = Socket(address, port)
+                    val client = Socket(address, port)
+                    message = if (state) { "LED+" } else { "LED-" }
+                    Log.d("kevin","send $message OK")
 
-                    val writer: OutputStream = connection.getOutputStream()
-                    message = if (state) { byteArrayOf(0x32) } else { byteArrayOf(0x33) }
-
-                    writer.write(message)
-                    println("Connected +++ $message")
-                    connection.close()
+                    client.outputStream.write("$message".toByteArray())
+                    client.close()
+                    Log.d("kevin","client close")
                 } catch (e: Exception) {
                     Log.d("kevin", e.toString())
                 }
