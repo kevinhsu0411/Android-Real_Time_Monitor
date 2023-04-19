@@ -99,7 +99,7 @@ class ClientFragment : Fragment() {
             Log.d("kevin", "motorOpenButton")
             val serverIP = binding.clientEdIP.text.toString()
             val serverPORT = binding.clientEdPORT.text.toString()
-            Client(serverIP, serverPORT.toInt()).setMotor(true)
+            Client(serverIP, serverPORT.toInt(), binding).setMotor(true)
 
             mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
             mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
@@ -109,7 +109,7 @@ class ClientFragment : Fragment() {
             Log.d("kevin", "motorCloseButton")
             val serverIP = binding.clientEdIP.text.toString()
             val serverPORT = binding.clientEdPORT.text.toString()
-            Client(serverIP, serverPORT.toInt()).setMotor(false)
+            Client(serverIP, serverPORT.toInt(), binding).setMotor(false)
 
             mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
             mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
@@ -250,22 +250,34 @@ class ClientFragment : Fragment() {
         }
     }
 
-    class Client(val address: String, val port: Int) {
-//        private lateinit var message: ByteArray
+    class Client(val address: String, val port: Int, val binding: FragmentClientBinding) {
         private lateinit var message: String
 
         fun setMotor(state: Boolean) {
             Log.d("kevin", "port = $port")
             GlobalScope.launch {
                 try {
+                    message = if (state) { "LED+" } else { "LED-" }
+
                     println("Connect to server at $address on port $port")
                     val client = Socket(address, port)
-                    message = if (state) { "LED+" } else { "LED-" }
-                    Log.d("kevin","send $message OK")
+                    if (client.isConnected) {
+                        client.outputStream.write(message.toByteArray())
+                        Log.d("kevin","send $message OK")
 
-                    client.outputStream.write("$message".toByteArray())
-                    client.close()
-                    Log.d("kevin","client close")
+                        val buffer = ByteArray(1024)
+                        val byte = client.getInputStream().read(buffer)
+                        if(byte > 0){
+                            val finalByte = byte
+                            val tmpMeassage = String(buffer,0,finalByte)
+                            Log.d("kevin","recv ${tmpMeassage} OK")
+                            binding.motorMsg.setText(tmpMeassage)
+                        }
+
+                        client.close()
+                        Log.d("kevin","client close")
+                    }
+
                 } catch (e: Exception) {
                     Log.d("kevin", e.toString())
                 }
