@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/KevinBB/Telematics/Kevin/android_motor/app/src/main/res/layout/fragment_camera.xml" value="0.1953125" />
+        <entry key="..\:/KevinBB/Telematics/Kevin/android_motor/app/src/main/res/layout/fragment_client.xml" value="0.264" />
+        <entry key="..\:/KevinBB/Telematics/Kevin/android_motor/app/src/main/res/layout/fragment_first.xml" value="0.24583333333333332" />
         <entry key="..\:/study/NanoServer/Android-NanoServer/app/src/main/res/layout/content_main.xml" value="0.1796875" />
         <entry key="..\:/study/NanoServer/Android-NanoServer/app/src/main/res/layout/fragment_camera.xml" value="0.2046875" />
         <entry key="..\:/study/NanoServer/Android-NanoServer/app/src/main/res/layout/fragment_client.xml" value="0.36614583333333334" />

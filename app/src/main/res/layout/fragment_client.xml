@@ -6,36 +6,18 @@
     android:layout_height="match_parent"
     tools:context=".ClientFragment">
 
-    <Button
-        android:id="@+id/client_preview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="60dp"
-        android:text="開始即時監控"
-        android:textAllCaps="false"
+    <EditText
+        android:id="@+id/client_ed_PORT3"
+        android:layout_width="53dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/teal_200"
+        android:hint="PORT"
+        app:layout_constraintEnd_toStartOf="@+id/motor_open_button"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/client_audioRecord"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="本地錄音"
-        android:textAllCaps="false"
-        app:layout_constraintStart_toEndOf="@+id/client_preview"
-        app:layout_constraintTop_toTopOf="@+id/client_preview" />
-
-    <Button
-        android:id="@+id/client_audioTrack_local"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:text="播放錄音檔"
-        android:textAllCaps="false"
-        app:layout_constraintStart_toEndOf="@+id/client_audioRecord"
-        app:layout_constraintTop_toTopOf="@+id/client_audioRecord" />
+        app:layout_constraintTop_toBottomOf="@+id/client_imvPreview" />
 
     <ImageView
         android:id="@+id/client_imvPreview"
@@ -49,26 +31,87 @@
 
     <EditText
         android:id="@+id/client_ed_IP"
-        android:layout_width="200dp"
-        android:layout_height="26dp"
-        android:layout_marginTop="40dp"
+        android:layout_width="180dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="68dp"
         android:background="@color/teal_200"
         android:hint="請先輸入 網址或ip"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.131"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/client_audioRecord" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="4dp"
+        android:text="IP Address"
+        app:layout_constraintBottom_toTopOf="@+id/client_ed_IP"
+        app:layout_constraintStart_toStartOf="@+id/client_ed_IP"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.897" />
 
     <EditText
         android:id="@+id/client_ed_PORT"
-        android:layout_width="100dp"
-        android:layout_height="26dp"
+        android:layout_width="53dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="140dp"
         android:background="@color/teal_200"
-        android:hint="可輸入PORT"
+        android:hint="PORT"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.319"
-        app:layout_constraintStart_toEndOf="@+id/client_ed_IP"
-        app:layout_constraintTop_toTopOf="@+id/client_ed_IP" />
+        app:layout_constraintHorizontal_bias="0.094"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/client_ed_PORT2"
+        android:layout_width="53dp"
+        android:layout_height="27dp"
+        android:layout_marginTop="140dp"
+        android:background="@color/teal_200"
+        android:hint="PORT"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.586"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:text="Port"
+        app:layout_constraintBottom_toTopOf="@+id/client_ed_PORT"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.088"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/client_ed_IP"
+        app:layout_constraintVertical_bias="0.833"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/client_preview_btn"
+        android:layout_width="75dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="126dp"
+        android:text="Play"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toEndOf="@+id/client_ed_PORT"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/client_preview2_btn"
+        android:layout_width="75dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="126dp"
+        android:text="Play"
+        android:textAllCaps="false"
+        app:layout_constraintStart_toEndOf="@+id/client_ed_PORT2"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/motorMsg"
@@ -85,7 +128,7 @@
         android:id="@+id/motor_open_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
+        android:layout_marginStart="96dp"
         android:layout_marginTop="24dp"
         android:text="加壓馬達開"
         app:layout_constraintStart_toStartOf="parent"
@@ -99,24 +142,6 @@
         android:text="加壓馬達關"
         app:layout_constraintStart_toEndOf="@+id/motor_open_button"
         app:layout_constraintTop_toTopOf="@+id/motor_open_button" />
-
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:text="IP Address"
-        app:layout_constraintBottom_toTopOf="@+id/client_ed_IP"
-        app:layout_constraintStart_toStartOf="@+id/client_ed_IP" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
-        android:text="Port"
-        app:layout_constraintBottom_toTopOf="@+id/client_ed_PORT"
-        app:layout_constraintStart_toStartOf="@+id/client_ed_PORT" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
