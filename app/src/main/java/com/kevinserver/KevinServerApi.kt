@@ -23,9 +23,9 @@ interface KevinServerApi {
         @Volatile
         private var instance: KevinServerApi? = null
 
-        fun getInstance(ip: String): KevinServerApi = instance?: synchronized(KevinServerApi::class.java){
+        fun getInstance(ip: String, port: String): KevinServerApi = instance?: synchronized(KevinServerApi::class.java){
             instance?:Retrofit.Builder()
-            .baseUrl("http://$ip:8080/")
+            .baseUrl("http://$ip:$port/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(KevinServerApi::class.java)

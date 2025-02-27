@@ -25,4 +25,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textview_first" />
+
+    <EditText
+        android:id="@+id/serverPort_txt"
+        android:layout_width="94dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/teal_200"
+        android:hint="PORT"
+        app:layout_constraintBottom_toTopOf="@+id/button_first"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

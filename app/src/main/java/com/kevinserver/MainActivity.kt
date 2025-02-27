@@ -3,20 +3,14 @@ package com.kevinserver
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
-import androidx.navigation.ui.NavigationUI.setupWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kevinserver.databinding.ActivityMainBinding
@@ -30,6 +24,8 @@ class MainActivity : AppCompatActivity() {
     companion object {
         lateinit var ROOT_DIR_PATH: String
     }
+
+    private var mSharedPreferences: SharedPreferences?= null
 
     private lateinit var pm: PowerManager
     private lateinit var wakeLock: PowerManager.WakeLock
@@ -45,6 +41,8 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = findViewById(R.id.nav_view)
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         navView.setupWithNavController(navController)
+
+        mSharedPreferences = getSharedPreferences("server", MODE_PRIVATE)
 
         initPowerWakeLock()
 
@@ -73,8 +71,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun init_web_service() {
-        Log.d("KK", "init_web_service")
-        WebServer(this, 8080).start()
+        mSharedPreferences?.getString("Init_Server_port", "8080")?.let {
+            Log.d("KK", "init_web_service Server_port : $it")
+            WebServer(this, it.toInt()).start()
+        }
     }
 
     @SuppressLint("InvalidWakeLockTag")
