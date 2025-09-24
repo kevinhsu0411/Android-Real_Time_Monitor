@@ -31,6 +31,9 @@ class ClientFragment : Fragment() {
 
     private var mSharedPreferences: SharedPreferences ?= null
 
+    private  var isRecording = false
+    private var isPlaying = false
+
     private val mSampleRate: Int = 8000
     private val mChannelConfig: Int = AudioFormat.CHANNEL_CONFIGURATION_MONO
     private val mAudioFormat: Int = AudioFormat.ENCODING_PCM_16BIT
@@ -67,48 +70,39 @@ class ClientFragment : Fragment() {
             binding.clientEdIP.setText(it)
         }
 
-        mSharedPreferences?.getString("port_motor", "")?.let {
-            binding.clientEdPORT3.setText(it)
-        }
-
-        mSharedPreferences?.getString("cameraPORT", "")?.let {
+        mSharedPreferences?.getString("port", "")?.let {
             binding.clientEdPORT.setText(it)
         }
 
-        mSharedPreferences?.getString("cameraPORT2", "")?.let {
-            binding.clientEdPORT2.setText(it)
+        binding.clientAudioRecord.setOnClickListener {
+            Log.d("kevin", "本地錄音 AudioRecord")
+            isRecording = true
+            isPlaying = false
+            record2FileThread()
         }
 
-        // =============== button even ===================
+        binding.clientAudioTrackLocal.setOnClickListener {
+            isRecording = false
+            isPlaying = true
+            playLocalFileThread()
+        }
 
-        binding.clientPreviewBtn.setOnClickListener {
+        binding.clientPreview.setOnClickListener {
             Log.d("kevin", "client Preview")
-            val cameraPORT = binding.clientEdPORT.text.toString()
 
-            playRealTime_Camera_Stream(cameraPORT)
-            setReceivePCM_RefreshInterval(cameraPORT)
+            playRealTime_Camera_Stream()
+            setReceivePCM_RefreshInterval()
 
-            mSharedPreferences?.edit()?.putString("cameraPORT", cameraPORT)?.commit()
-        }
-
-        binding.clientPreview2Btn .setOnClickListener {
-            Log.d("kevin", "client Preview2")
-            val camera2PORT = binding.clientEdPORT2.text.toString()
-
-            playRealTime_Camera_Stream(camera2PORT)
-            setReceivePCM_RefreshInterval(camera2PORT)
-
-            mSharedPreferences?.edit()?.putString("cameraPORT2", camera2PORT)?.commit()
         }
 
         binding.motorOpenButton.setOnClickListener {
             Log.d("kevin", "motorOpenButton")
             val serverIP = binding.clientEdIP.text.toString()
-            val motorPORT = binding.clientEdPORT3.text.toString()
-            Client(serverIP, motorPORT.toInt(), binding).setMotor(true)
+            val serverPORT = binding.clientEdPORT.text.toString()
+            Client(serverIP, serverPORT.toInt(), binding).setMotor(true)
 
             mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
-            mSharedPreferences?.edit()?.putString("port_motor", motorPORT)?.commit()
+            mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
         }
 
         binding.motorCloseButton.setOnClickListener {
@@ -118,17 +112,17 @@ class ClientFragment : Fragment() {
             Client(serverIP, serverPORT.toInt(), binding).setMotor(false)
 
             mSharedPreferences?.edit()?.putString("ip", serverIP)?.commit()
-            mSharedPreferences?.edit()?.putString("port_motor", serverPORT)?.commit()
+            mSharedPreferences?.edit()?.putString("port", serverPORT)?.commit()
         }
     }
 
     @SuppressLint("CheckResult")
-    private fun playRealTime_Camera_Stream(Port: String) {
+    private fun playRealTime_Camera_Stream() {
         Thread {
             Observable.interval(100, TimeUnit.MILLISECONDS).subscribe ({
                 val serverIP = binding.clientEdIP.text.toString()
                 var base64 = ""
-                val response = KevinServerApi.getInstance(serverIP, Port).getCameraStream().execute()
+                val response = KevinServerApi.getInstance(serverIP).getCameraStream().execute()
                 response.body()?.let {
                     base64 = it.string()
                 }
@@ -146,20 +140,20 @@ class ClientFragment : Fragment() {
         }.start()
     }
 
-    private fun setReceivePCM_RefreshInterval(Port: String) {
-        playRealTime_Audio_Stream(Port)
+    private fun setReceivePCM_RefreshInterval() {
+        playRealTime_Audio_Stream()
         Observable.interval(30, TimeUnit.SECONDS).subscribe({
-            playRealTime_Audio_Stream(Port)
+            playRealTime_Audio_Stream()
         }, {})
     }
 
-    private fun playRealTime_Audio_Stream(Port: String) {
+    private fun playRealTime_Audio_Stream() {
         mPCM_thread.interrupt()
         mPCM_thread = Thread {
             try {
                 val serverIP = binding.clientEdIP.text.toString()
                 val audioPlayer = AudioTrackPlayer()
-                val response = KevinServerApi.getInstance(serverIP, Port).getAudioStream().execute()
+                val response = KevinServerApi.getInstance(serverIP).getAudioStream().execute()
                 val inputStream = response.body()?.byteStream()
 
                 if (response.isSuccessful && inputStream != null) {
@@ -188,7 +182,6 @@ class ClientFragment : Fragment() {
                 val bos = BufferedOutputStream(FileOutputStream(pcmFile), mRecordBufSize)
                 audioRecord.startRecording()
 
-                val isRecording = true
                 while (isRecording) {
                     val bufferReadResult = audioRecord.read(buffer, 0, mRecordBufSize)
                     val tmpBuf = ByteArray(bufferReadResult)

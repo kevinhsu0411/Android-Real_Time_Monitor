@@ -1,7 +1,5 @@
 package com.kevinserver
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -21,8 +19,6 @@ class FirstFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private var mSharedPreferences: SharedPreferences?= null
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -35,15 +31,9 @@ class FirstFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mSharedPreferences = activity?.getSharedPreferences("server", Context.MODE_PRIVATE)
-
-        mSharedPreferences?.getString("Init_Server_port", "8080")?.let {
-            binding.serverPortTxt.setText(it)
-        }
 
         binding.buttonFirst.setOnClickListener {
-            val prot = binding.serverPortTxt.text.toString()
-            mSharedPreferences?.edit()?.putString("Init_Server_port", prot)?.commit()
+            //findNavController().navigate(R.id.FirstFragment)
         }
     }
 
