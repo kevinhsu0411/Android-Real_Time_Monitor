@@ -123,7 +123,7 @@ class CameraFragment : Fragment() {
 
                 parameters?.pictureFormat = ImageFormat.JPEG
                 parameters?.previewFormat = ImageFormat.NV21
-                parameters?.setPreviewSize(640, 480)
+                parameters?.setPreviewSize(1280, 720)
                 parameters?.focusMode = "continuous-video"
                 parameters?.whiteBalance = "twilight"
                 //parameters?.exposureCompensation = 12
