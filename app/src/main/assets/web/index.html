@@ -1,132 +1,69 @@
-﻿<html>
+﻿<!DOCTYPE html>
+<html>
 <head>
 	<title>kevin Server Control Panel</title>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="stylesheet" href="bootstrap/css/bootstrap.css">
-	<style type="text/css">
-	.btn{
-		margin: 5px;
-	}
+
+	<style>
+		html, body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+        }
+
+        #imgCamera {
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; /* 不裁切 */
+            display: block;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+        }
 	</style>
 </head>
 
 <body>
-<!-- Wrap all page content here -->
-<div id="wrap">
-	<div class="navbar navbar-default">
-		<div class="container">
-			<div class="col-md-4 col-sm-12 col-xs-12">
 
-				<div class="page-header">
-					<h2>Camera</h2>
-				</div>
+<!-- 🔴 Camera full screen -->
+<img id="imgCamera" src="">
 
-				<img id="imgCamera" class="img-responsive" src="" />
+<!-- 🟢 控制 UI 疊在畫面上 -->
+<div class="control-panel">
+	<button onclick="StartPreview()" class="btn btn-primary">Preview</button>
+	<button onclick="SwitchAE_mode()" class="btn btn-primary">夜間模式</button>
 
-				<audio
-						id="audioResource" src="./api/audio_Play" autoplay controls type="audio/mpeg" >
-				</audio>
-
-				<br>
-				<button onclick="StartPreview()" class="btn btn-lg btn-primary">Preview</button>
-
-				<button onclick="SwitchAE_mode()" class="btn btn-lg btn-primary">夜間模式</button>
-
-				<button onclick="StartRecord()" class="btn btn-lg btn-primary">Start Record</button>
-<!--				<button onclick="StopRecord()" class="btn btn-lg btn-primary">Stop Record</button>-->
-<!--				<button onclick="PlayRecord()" class="btn btn-lg btn-primary">Play Record</button>-->
-
-				<hr>
-
-<!--				<img id="imgPicture" class="img-responsive" src="" alt="一張圖片" style="width:100%" >-->
-			</div>
-		</div>
-	</div>
+	<br><br>
 </div>
 
 <script src="bootstrap/js/jquery.js"></script>
-<script src="bootstrap/js/bootstrap.js"></script>
+
+<script>
+	function SwitchAE_mode() {
+        $.get("/api/exposure");
+    }
+
+    function StartPreview() {
+        setInterval(function () {
+            $.ajax({
+                type: "GET",
+                url: "/api/preview",
+                dataType: "json",
+                success: function (data) {
+                    $('#imgCamera').attr('src', data);
+                }
+            });
+        }, 200);
+    }
+</script>
+
 </body>
 </html>
-<script type="text/javascript">
-
-		function SwitchAE_mode() {
-			$.ajax({
-                type: "GET",
-                url: "/api/exposure",
-                success: function (data) {
-                },
-                failure: function (errMsg) {
-                	alert(errMsg);
-                }
-            });
-		}
-
-		function StartPreview(){
-			var refreshInterval = 200;
-	        var timer = setInterval(function () {
-	            $.ajax({
-					type: "GET",
-					url: "/api/preview",
-					contentType: "application/json; charset=utf-8",
-					dataType: "json",
-					success: function (data) { $('#imgCamera').attr('src',data); },
-					failure: function (errMsg) {
-						clearInterval(timer);
-					},
-					error: function(x,e){
-						 clearInterval(timer);
-					}
-				});
-	        }, refreshInterval);
-		}
-
-
-		var recordPlayInterval = null
-		function PlayRecord(){
-			var refreshInterval = 5000;
-	        recordPlayInterval = setInterval(function () {
-				var audio = document.getElementById('audioResource');
-				audio.load()
-            }, refreshInterval);
-		}
-
-
-
-		function StartRecord(){
-			if ( recordPlayInterval != null ) {
-				clearInterval(recordPlayInterval)
-			}
-			StopRecord()
-            $.ajax({
-                type: "GET",
-                url: "/api/audio_Start",
-            });
-            PlayRecord();
-		}
-
-		function StopRecord(){
-            $.ajax({
-                type: "GET",
-                url: "/api/audio_Stop",
-            });
-		}
-
-		function TackPicture() {
-			$.ajax({
-                type: "GET",
-                contentType: "image/jpeg",
-                url: "/api/pic",
-                success: function (data) {
-<!--                	$('#imgPicture').attr('src','data:image/jpeg;base64,' + window.btoa(unescape(encodeURIComponent(JSON.stringify(data)))));-->
-<!--                	alert(imgPicture);-->
-                },
-                failure: function (errMsg) {
-                	alert(errMsg);
-                }
-            });
-		}
-
-	</script>
-

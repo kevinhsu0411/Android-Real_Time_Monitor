@@ -100,9 +100,9 @@ class WebServer(val activity: Activity, port: Int) : NanoHTTPD(port) {
                     if (CameraFragment.imgRow == null) {
                         CameraFragment.camera?.startPreview()
                     } else {
-                        val imgC = YuvImage(CameraFragment.imgRow, ImageFormat.NV21, 640, 480, null)
+                        val imgC = YuvImage(CameraFragment.imgRow, ImageFormat.NV21, 1280, 720, null)
                         val outStream = ByteArrayOutputStream()
-                        imgC.compressToJpeg(Rect(0, 0, 640, 480), 80, outStream)
+                        imgC.compressToJpeg(Rect(0, 0, 1280, 720), 80, outStream)
                         try {
                             outStream.flush()
                             outStream.close()
